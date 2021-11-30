@@ -15,7 +15,7 @@ execute this.
 ```smalltalk
 Metacello
 	new
-		repository: 'github://CafeKrem/PTL:main';
+		repository: 'github://alessho/PTL:main';
 		baseline: 'PTL';
 		onConflictUseIncoming;
 		load.
