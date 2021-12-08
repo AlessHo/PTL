@@ -85,8 +85,7 @@ PTLPatternMatcherTest >> methodTestCompose1 [
 PTLPatternMatcherTest >> methodTestMultipleChildrenNamed [
 	100
 		patrick;
-		klm;
-		edgard
+		klm
 ]
 
 { #category : #example }
@@ -484,11 +483,11 @@ PTLPatternMatcherTest >> testJokerMatcher [
 PTLPatternMatcherTest >> testJokerMatcherAutoAssignedNamed [
 
 	| pattern model matchResult |
-	pattern := { (RBSequenceNode suchAs:
-		            { (#statements -> RBMessageNode suchAs: { 
+	pattern := RBSequenceNode suchAs:
+		           { (#statements -> { (RBMessageNode suchAs: { 
 				             (#receiver -> #@).
 				             (#selector -> '+').
-				             (#arguments -> #@) }) }) } asMatcher.
+				             (#arguments -> #@) }) }) }.
 
 	model := self productFASTPharo:
 		         PTLPatternMatcherTest >> #methodTestBinOp1.
@@ -524,12 +523,33 @@ PTLPatternMatcherTest >> testMatchAnAbstraction [
 ]
 
 { #category : #tests }
+PTLPatternMatcherTest >> testMatchCollectionObjectAsCollection [
+
+	| pattern model1 model2 |
+	pattern := { (RBCascadeNode suchAs: { (#messages -> { 
+			             #'*before'.
+			             (RBMessageNode suchAs: { 
+					              (#receiver -> 100).
+					              (#selector -> #klm) }) }) }) } asMatcher.
+
+
+	model1 := self productFASTPharo:
+		          PTLPatternMatcherTest >> #methodTestMultipleChildrenNamed.
+
+	model2 := self productFASTPharo:
+		          PTLPatternMatcherTest >> #methodTestMultipleChildrenNamed2.
+
+	self assert: (pattern match: model1) isMatch.
+	self deny: (pattern match: model2) isMatch
+]
+
+{ #category : #tests }
 PTLPatternMatcherTest >> testMatchModelRefenceWithConfigurationMatcher [
 
 	| pattern |
 	pattern := RBSequenceNode suchAs:
-		           { (#statements -> (RBReturnNode suchAs: { 'klm' })) }
-			           asMatcher.
+		           { (#statements
+		            -> (RBReturnNode suchAs: { (#value -> 'klm') })) }.
 	self assert: (pattern match: [ ^ 'klm' ] sourceNode body) isMatch.
 	self deny: (pattern match: [ ^ 'patrick' ] sourceNode body) isMatch
 ]
@@ -540,23 +560,26 @@ PTLPatternMatcherTest >> testMatchModelRefenceWithConfigurationMatcher2 [
 	| pattern pattern2 model1 model2 |
 	model1 := [ ^ 'klm' ] sourceNode body.
 	model2 := [ ^ 'patrick' ] sourceNode body.
+
 	pattern := RBSequenceNode suchAs:
-		           { (#statements -> (RBReturnNode suchAs: { 'klm' })) }
-			           asMatcher.
+		           { (#statements
+		            -> (RBReturnNode suchAs: { (#value -> 'klm') })) }.
 	pattern2 := RBSequenceNode suchAs:
-		            { (#statements -> RBReturnNode suchAs: 'klm') }
-			            asMatcher.
+		            { (#statements -> RBReturnNode suchAs:
+			             { (#value -> 'klm') }) }.
+
 	self assert: (pattern match: model1) isMatch.
 	self assert: (pattern2 match: model1) isMatch.
+
 	self deny: (pattern match: model2) isMatch.
-	self deny: (pattern match: model2) isMatch
+	self deny: (pattern2 match: model2) isMatch
 ]
 
 { #category : #tests }
 PTLPatternMatcherTest >> testMatchModelReference2 [
 
 	| pattern |
-	pattern := PTLTestClassA unique.
+	pattern := PTLTestClassA exactAs: {}.
 	self assert: (pattern match: PTLTestClassA new) isMatch.
 	self deny: (pattern match: PTLTestClassB new) isMatch
 ]
@@ -575,16 +598,43 @@ PTLPatternMatcherTest >> testMatchModelReferenceShouldRaiseError [
 PTLPatternMatcherTest >> testMatchModelReferenceWithNamedConfiguration [
 
 	| pattern model1 model2 |
-	pattern := { (RBSequenceNode suchAs: { (#statements
-		             ->
-			             { (RBCascadeNode suchAs: { (RBMessageNode suchAs: { 
-						               (#receiver -> 100).
-						               (#selector -> 'klm') }) }) }) }) } asMatcher.
+	pattern := RBSequenceNode suchAs:
+		           { (#statements
+		            -> { (RBCascadeNode suchAs: { (#messages -> { 
+					              #'*before'.
+					              (RBMessageNode suchAs: { 
+							               (#receiver -> 100).
+							               (#selector -> #klm) }) }) }) }) }.
+
+
 	model1 := self productFASTPharo:
 		          PTLPatternMatcherTest >> #methodTestMultipleChildrenNamed.
+
 	model2 := self productFASTPharo:
 		          PTLPatternMatcherTest >> #methodTestMultipleChildrenNamed2.
+
 	self assert: (pattern match: model1) isMatch.
+	self deny: (pattern match: model2) isMatch
+]
+
+{ #category : #tests }
+PTLPatternMatcherTest >> testMatchObjectWithCollection [
+
+	| pattern model1 model2 |
+	pattern := { 
+		           #'*before'.
+		           (RBMessageNode suchAs: { 
+				            (#receiver -> 100).
+				            (#selector -> #klm) }) } asMatcher.
+
+
+	model1 := self productFASTPharo:
+		          PTLPatternMatcherTest >> #methodTestMultipleChildrenNamed.
+
+	model2 := self productFASTPharo:
+		          PTLPatternMatcherTest >> #methodTestMultipleChildrenNamed2.
+
+	self assert: (pattern match: (model1 statements at: 1) messages) isMatch.
 	self deny: (pattern match: model2) isMatch
 ]
 
@@ -594,8 +644,7 @@ PTLPatternMatcherTest >> testMatchSavedAssociation [
 	| matchResult1 matchResult2 matchResult3 matcher |
 	matcher := RBSequenceNode suchAs: { (#statements
 		            ->
-		            ((RBReturnNode suchAs: { (#value -> '4') }) named: #a)) }
-			           asMatcher.
+		            ((RBReturnNode suchAs: { (#value -> '4') }) named: #a)) }.
 	matchResult1 := matcher match: (self productFASTPharo:
 			                 PTLPatternMatcherTest >> #methodTestReturnLiteral4).
 	matchResult2 := matcher match: (self productFASTPharo:
@@ -651,14 +700,15 @@ PTLPatternMatcherTest >> testModelReferenceWithMultipleSubPattern [
 	pattern := RBSequenceNode suchAs:
 		           { (#statements -> { ((RBAssignmentNode suchAs: { 
 				              (#variable -> 'klm').
-				              (#value -> 100) }) named: #a) }) } asMatcher.
+				              (#value -> 100) }) named: #a) }) }.
+
 	model1 := self productFASTPharo:
 		          PTLPatternMatcherTest >> #methodTestAssignement.
-
 	model2 := self productFASTPharo:
 		          PTLPatternMatcherTest >> #methodTestAssignement2.
 	model3 := self productFASTPharo:
 		          PTLPatternMatcherTest >> #methodTestAssignement3.
+
 	self assert: (pattern match: model1) isMatch.
 	self deny: (pattern match: model2) isMatch.
 	self deny: (pattern match: model3) isMatch
@@ -808,7 +858,7 @@ PTLPatternMatcherTest >> testSequenceMatcher [
 	pattern := RBSequenceNode suchAs: { (#statements -> { 
 			            (RBBlockNode named: #block).
 			            (100 named: #int).
-			            (RBLiteralNode named: #str) }) } asMatcher.
+			            (RBLiteralNode named: #str) }) }.
 
 	model0 := self productFASTPharo:
 		          PTLPatternMatcherTest >> #methodTestSequence.
@@ -816,9 +866,12 @@ PTLPatternMatcherTest >> testSequenceMatcher [
 		          PTLPatternMatcherTest >> #methodTestSequenceIncomplete.
 	model2 := self productFASTPharo:
 		          PTLPatternMatcherTest >> #methodTestSequenceDirectMatch.
+
 	self deny: (pattern match: model0) isMatch.
 	self assert: (pattern match: model1) isMatch.
+
 	mathResult2 := pattern match: model2.
+
 	self assert: mathResult2 isMatch.
 	self assert: (mathResult2 at: #block) class equals: RBBlockNode.
 	self assert: (mathResult2 at: #int) value equals: 100.
@@ -832,13 +885,15 @@ PTLPatternMatcherTest >> testSequenceMatcher2 [
 	pattern := RBSequenceNode suchAs: { (#statements -> { 
 			            RBBlockNode.
 			            100.
-			            RBLiteralValueNode }) } asMatcher.
+			            RBLiteralValueNode }) }.
+
 	model0 := self productFASTPharo:
 		          PTLPatternMatcherTest >> #methodTestSequence.
 	model1 := self productFASTPharo:
 		          PTLPatternMatcherTest >> #methodTestSequenceIncomplete.
 	model2 := self productFASTPharo:
 		          PTLPatternMatcherTest >> #methodTestSequenceDirectMatch.
+
 	self deny: (pattern match: model0) isMatch.
 	self assert: (pattern match: model1) isMatch.
 	self assert: (pattern match: model2) isMatch
@@ -873,15 +928,20 @@ PTLPatternMatcherTest >> testStringCompositeMatcher [
 PTLPatternMatcherTest >> testStringCompositeMatcher2 [
 
 	| pattern model matchResult compatibility |
+	self
+		flag: 'This test is related to an old feature we do not want anymore';
+		skip.
+		
 	compatibility := self compatibilityStringCompositeMatche2.
 	pattern := { (RBSequenceNode suchAs: { (#statements
 		             ->
-		             (RBMessageNode suchAs: { (#selector -> compatibility) })) }) }
-		           asMatcher.
+		             { (RBMessageNode suchAs:
+			              { (#selector -> compatibility) }) }) }) } asMatcher.
 
 	model := self productFASTPharo:
 		         PTLPatternMatcherTest >> #methodTestCompose1.
 	matchResult := pattern match: model.
+
 	self assert: matchResult isMatch.
 	self assert: (matchResult at: #x) equals: 'Patrick'
 ]
@@ -899,7 +959,7 @@ PTLPatternMatcherTest >> testStringMatcher [
 PTLPatternMatcherTest >> testStringMatcher2 [
 
 	| pattern a b x |
-	pattern := RBVariableNode suchAs: { (#name -> #x) } asMatcher.
+	pattern := RBVariableNode suchAs: { (#name -> #x) }.
 
 	a := pattern match: ([ x ] sourceNode statements at: 1).
 	b := pattern match: ([ x ] sourceNode statements at: 1).

@@ -3,7 +3,8 @@ Class {
 	#superclass : #PTLMatcherModelEntity,
 	#instVars : [
 		'class_',
-		'pathToMatchers'
+		'pathToMatchers',
+		'exactClass'
 	],
 	#category : #'PharoTransformationLanguage-model'
 }
@@ -42,7 +43,7 @@ PTLObjectMatcher >> checkInnerMatching: aPath onInstance: instance inContext: co
 { #category : #'as yet unclassified' }
 PTLObjectMatcher >> compareValue: aValue [
 
-	"matchOnlyThisClass ifTrue: [ ^ aValue class = class_ ]."
+	exactClass ifTrue: [ ^ aValue class = class_ ].
 	^ aValue isKindOf: class_
 ]
 
@@ -61,7 +62,9 @@ PTLObjectMatcher >> hasMatch: aValue withContext: aContext [
 
 { #category : #initialization }
 PTLObjectMatcher >> initialize [
+
 	pathToMatchers := Dictionary new.
+	exactClass := false
 ]
 
 { #category : #PTL }
@@ -89,6 +92,12 @@ PTLObjectMatcher >> match: aValue withContext: aContext [
 { #category : #accessor }
 PTLObjectMatcher >> matchAgainstClass: aClass [
 	class_ := aClass
+]
+
+{ #category : #initialization }
+PTLObjectMatcher >> matchExactClass [
+
+	exactClass := true
 ]
 
 { #category : #accesor }

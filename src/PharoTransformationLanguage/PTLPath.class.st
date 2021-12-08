@@ -9,7 +9,7 @@ Class {
 
 { #category : #'instance creation' }
 PTLPath class >> from: aPathString [
-	^ self new path: aPathString asSymbol
+	^ self new path: aPathString trim asSymbol
 ]
 
 { #category : #displaying }

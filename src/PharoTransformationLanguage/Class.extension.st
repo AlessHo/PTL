@@ -8,6 +8,12 @@ Class >> asMatcher [
 ]
 
 { #category : #'*PharoTransformationLanguage' }
+Class >> exactAs: anAssociationArray [
+
+	^ (self suchAs: anAssociationArray) matchExactClass
+]
+
+{ #category : #'*PharoTransformationLanguage' }
 Class >> named: aString [
 
 	^ self asMatcher
@@ -18,12 +24,17 @@ Class >> named: aString [
 { #category : #'*PharoTransformationLanguage' }
 Class >> suchAs: anAssociationArray [
 
-	^ PTLObjectMatcher
+	"^ PTLObjectMatcher
 		  onClass: self
 		  withMatchers:
 		  (anAssociationArray do: [ :entry |
 					entry key: entry key asPTLPath.
-			   entry value: entry value asMatcher ])
+			   entry value: entry value asMatcher ])"
+
+	^ PTLObjectMatcher
+		  onClass: self
+		  withMatchers:
+		  (anAssociationArray do: [ :entry | entry asMatcher ])
 ]
 
 { #category : #'*PharoTransformationLanguage' }

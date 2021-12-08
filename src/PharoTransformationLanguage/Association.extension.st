@@ -3,12 +3,11 @@ Extension { #name : #Association }
 { #category : #'*PharoTransformationLanguage' }
 Association >> asMatcher [
 
-	| path |
-	path := self key asPTLPath.
-	path matcherModel: self value asMatcher.
-
-	self value = '@' ifTrue: [ path matcherModel named: self key ].
-	^ path
+	| matcher |
+	matcher := self value asMatcher.
+	self value = #@ ifTrue: [ matcher named: self key ].
+	self value: matcher.
+	self key: self key asPTLPath.
 ]
 
 { #category : #'*PharoTransformationLanguage' }
