@@ -12,7 +12,7 @@ PTLSequencePath class >> from: aString [
 
 	| collection |
 	collection := (aString splitOn: self navigationSymbol) collect: [ 
-		              :subpath | subpath asPTLPath ].
+		              :subpath | subpath trim asPTLPath ].
 
 	^ (super from: aString) pathSequence: collection
 ]
