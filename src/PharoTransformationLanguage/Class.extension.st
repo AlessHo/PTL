@@ -31,10 +31,17 @@ Class >> suchAs: anAssociationArray [
 					entry key: entry key asPTLPath.
 			   entry value: entry value asMatcher ])"
 
-	^ PTLObjectMatcher
-		  onClass: self
-		  withMatchers:
-		  (anAssociationArray do: [ :entry | entry asMatcher ])
+	| matchers sourceMatcher childrenPath |
+	matchers := anAssociationArray do: [ :entry | entry asMatcher ].
+
+	sourceMatcher := PTLObjectMatcher
+		                 onClass: self
+		                 withMatchers:
+		                 (matchers reject: [ :each | each key recursivePath ]).
+
+	childrenPath := matchers select: [ :each | each key recursivePath ] thenCollect: [ :each | each value].
+	childrenPath ifEmpty: [ ^ sourceMatcher ].
+	^ ChildrenMatcher from: sourceMatcher to: childrenPath
 ]
 
 { #category : #'*PharoTransformationLanguage' }

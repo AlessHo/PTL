@@ -25,6 +25,15 @@ PTLMatcherResult >> context [
 	^ context
 ]
 
+{ #category : #test }
+PTLMatcherResult >> copy [
+	| instance |
+	instance := self class new.
+	instance isMatch: self isMatch.
+	instance context addAll: self context.
+	^ instance
+]
+
 { #category : #initialization }
 PTLMatcherResult >> initialize [
 	super initialize.

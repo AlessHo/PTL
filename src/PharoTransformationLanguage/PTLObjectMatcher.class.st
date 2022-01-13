@@ -33,6 +33,7 @@ PTLObjectMatcher >> checkInnerMatching: aPath onInstance: instance inContext: co
 
 	| matcher attributeValue |
 	matcher := pathToMatchers at: aPath.
+
 	attributeValue := aPath resolveOn: instance.
 	self flag: 'FIXME: remove copy of collections'.
 	^ matcher
@@ -45,6 +46,20 @@ PTLObjectMatcher >> compareValue: aValue [
 
 	exactClass ifTrue: [ ^ aValue class = class_ ].
 	^ aValue isKindOf: class_
+]
+
+{ #category : #initialization }
+PTLObjectMatcher >> generate [
+
+	| matchers r others instance |
+	matchers := OrderedCollection new.
+	r := pathToMatchers
+		     select: [ :each | each key yieldCollection ]
+		     thenCollect: [ :each | each value ].
+	others := pathToMatchers reject: [ :each | each yieldCollection ].
+	r do: [ 
+		instance := self class new.
+		self ]
 ]
 
 { #category : #'as yet unclassified' }

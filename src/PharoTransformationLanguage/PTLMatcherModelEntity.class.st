@@ -161,13 +161,7 @@ PTLMatcherModelEntity >> like: aFullBlockClosure [
 
 { #category : #'API-matchRuning' }
 PTLMatcherModelEntity >> match: aValue [
-
-	| matcherResult |
-	matcherResult := PTLMatcherResult new.
-	matcherResult isMatch: (self
-			 match: aValue asOrderedCollection
-			 withContext: matcherResult).
-	^ matcherResult
+	^ self match: aValue withInitialContext:  PTLMatcherResult new
 ]
 
 { #category : #'private-running' }
@@ -183,6 +177,14 @@ PTLMatcherModelEntity >> match: aCollection withContext: aContext [
 			  self hookSaveAction: aCollection withContext: aContext.
 			  true ]
 		  ifFalse: [ false ]
+]
+
+{ #category : #'API-matchRuning' }
+PTLMatcherModelEntity >> match: aValue withInitialContext: aContext [
+
+	aContext isMatch:
+		(self match: aValue asOrderedCollection withContext: aContext).
+	^ aContext
 ]
 
 { #category : #'API-patternDSL' }

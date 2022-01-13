@@ -9,7 +9,7 @@ String >> asMatcher [
 
 { #category : #'*PharoTransformationLanguage' }
 String >> asPTLPath [
-
+	(#(#_ $_ '_') includes: self) ifTrue: [ ^ PTLAllChildrenPath new ].
 	(self includes: $>) ifTrue: [ ^ PTLSequencePath from: self ].
 	^ PTLPath from: self
 ]
